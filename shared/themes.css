@@ -1,0 +1,526 @@
+/* Base form styling */
+.form-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.form-card {
+  max-width: 500px;
+  width: 100%;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.form-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.form-description {
+  margin-bottom: 32px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.form-field {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-checkbox input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.form-submit {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 24px;
+}
+
+.form-submit:hover {
+  transform: translateY(-2px);
+}
+
+.form-submit:active {
+  transform: translateY(0);
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+.required {
+  color: #ef4444;
+}
+
+/* Modern Theme */
+.theme-modern {
+  --primary: #6366f1;
+  --primary-hover: #5855eb;
+  --background: #ffffff;
+  --surface: #f8fafc;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --border-focus: #6366f1;
+  --shadow: rgba(0, 0, 0, 0.1);
+}
+
+.theme-modern .form-container {
+  background: linear-gradient(135deg, var(--surface) 0%, #e2e8f0 100%);
+  color: var(--text);
+}
+
+.theme-modern .form-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+.theme-modern .form-title {
+  color: var(--text);
+}
+
+.theme-modern .form-description {
+  color: var(--text-secondary);
+}
+
+.theme-modern .form-label {
+  color: var(--text);
+}
+
+.theme-modern .form-input,
+.theme-modern .form-select,
+.theme-modern .form-textarea {
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.theme-modern .form-input:focus,
+.theme-modern .form-select:focus,
+.theme-modern .form-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.theme-modern .form-submit {
+  background: var(--primary);
+  color: white;
+}
+
+.theme-modern .form-submit:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Dark Theme */
+.theme-dark {
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --background: #1e1e1e;
+  --surface: #0f0f0f;
+  --text: #ffffff;
+  --text-secondary: #a1a1aa;
+  --border: #404040;
+  --border-focus: #8b5cf6;
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+
+.theme-dark .form-container {
+  background: linear-gradient(135deg, var(--surface) 0%, #262626 100%);
+  color: var(--text);
+}
+
+.theme-dark .form-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 25px var(--shadow);
+}
+
+.theme-dark .form-title {
+  color: var(--text);
+}
+
+.theme-dark .form-description {
+  color: var(--text-secondary);
+}
+
+.theme-dark .form-label {
+  color: var(--text);
+}
+
+.theme-dark .form-input,
+.theme-dark .form-select,
+.theme-dark .form-textarea {
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.theme-dark .form-input:focus,
+.theme-dark .form-select:focus,
+.theme-dark .form-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.theme-dark .form-submit {
+  background: var(--primary);
+  color: white;
+}
+
+.theme-dark .form-submit:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Gradient Theme */
+.theme-gradient {
+  --primary: #ff6b6b;
+  --primary-hover: #ff5252;
+  --background: #ffffff;
+  --surface: #f8fafc;
+  --text: #2d3748;
+  --text-secondary: #718096;
+  --border: #e2e8f0;
+  --border-focus: #ff6b6b;
+  --shadow: rgba(255, 107, 107, 0.2);
+}
+
+.theme-gradient .form-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--text);
+}
+
+.theme-gradient .form-card {
+  background: var(--background);
+  border: none;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+}
+
+.theme-gradient .form-title {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.theme-gradient .form-description {
+  color: var(--text-secondary);
+}
+
+.theme-gradient .form-label {
+  color: var(--text);
+}
+
+.theme-gradient .form-input,
+.theme-gradient .form-select,
+.theme-gradient .form-textarea {
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.theme-gradient .form-input:focus,
+.theme-gradient .form-select:focus,
+.theme-gradient .form-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--shadow);
+}
+
+.theme-gradient .form-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.theme-gradient .form-submit:hover {
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-3px);
+}
+
+/* Neon Theme */
+.theme-neon {
+  --primary: #00ffff;
+  --primary-hover: #00e6e6;
+  --background: #0a0a0a;
+  --surface: #000000;
+  --text: #ffffff;
+  --text-secondary: #cccccc;
+  --border: #333333;
+  --border-focus: #00ffff;
+  --shadow: rgba(0, 255, 255, 0.3);
+  --neon-glow: 0 0 5px #00ffff, 0 0 10px #00ffff, 0 0 15px #00ffff;
+}
+
+.theme-neon .form-container {
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  color: var(--text);
+}
+
+.theme-neon .form-card {
+  background: var(--background);
+  border: 2px solid var(--primary);
+  box-shadow: var(--neon-glow), 0 0 30px rgba(0, 255, 255, 0.1);
+  position: relative;
+}
+
+.theme-neon .form-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+  border-radius: 12px;
+  z-index: -1;
+  animation: neon-border 3s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes neon-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.theme-neon .form-title {
+  color: var(--primary);
+  text-shadow: var(--neon-glow);
+  animation: neon-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes neon-pulse {
+  from { text-shadow: var(--neon-glow); }
+  to { text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff, 0 0 24px #00ffff; }
+}
+
+.theme-neon .form-description {
+  color: var(--text-secondary);
+}
+
+.theme-neon .form-label {
+  color: var(--primary);
+  text-shadow: 0 0 5px #00ffff;
+}
+
+.theme-neon .form-input,
+.theme-neon .form-select,
+.theme-neon .form-textarea {
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.theme-neon .form-input:focus,
+.theme-neon .form-select:focus,
+.theme-neon .form-textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--neon-glow);
+  background: rgba(0, 255, 255, 0.05);
+}
+
+.theme-neon .form-submit {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  text-shadow: 0 0 5px #00ffff;
+  box-shadow: var(--neon-glow);
+}
+
+.theme-neon .form-submit:hover {
+  background: var(--primary);
+  color: var(--background);
+  text-shadow: none;
+  box-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff, 0 0 24px #00ffff;
+  transform: translateY(-3px);
+}
+
+/* Forest Mystique Theme - New 4th Theme */
+.theme-forest {
+  --primary: #059669;
+  --primary-hover: #047857;
+  --background: #ffffff;
+  --surface: #f0fdf4;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #bbf7d0;
+  --border-focus: #059669;
+  --shadow: rgba(5, 150, 105, 0.2);
+  --accent: #dc2626;
+  --wood: #8b4513;
+}
+
+.theme-forest .form-container {
+  background: 
+    linear-gradient(135deg, #f0fdf4 0%, #dcfce7 30%, #bbf7d0 60%, #86efac 100%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="leaves" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="%23047857" opacity="0.1"/><path d="M5 5 L10 10 L15 5" stroke="%23059669" stroke-width="0.5" fill="none" opacity="0.2"/></pattern></defs><rect width="100" height="100" fill="url(%23leaves)"/></svg>');
+  color: var(--text);
+  position: relative;
+}
+
+.theme-forest .form-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(220, 38, 38, 0.08) 0%, transparent 50%);
+  animation: nature-sway 25s ease-in-out infinite alternate;
+}
+
+@keyframes nature-sway {
+  0% { transform: translateX(-5px) scale(1); }
+  100% { transform: translateX(5px) scale(1.02); }
+}
+
+.theme-forest .form-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px solid rgba(5, 150, 105, 0.3);
+  backdrop-filter: blur(10px);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  position: relative;
+  z-index: 1;
+}
+
+.theme-forest .form-card::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, var(--primary), var(--wood), var(--accent), var(--primary));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.theme-forest .form-card:hover::after {
+  opacity: 0.6;
+}
+
+.theme-forest .form-title {
+  background: linear-gradient(135deg, var(--primary), var(--wood), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+}
+
+.theme-forest .form-description {
+  color: var(--text-secondary);
+}
+
+.theme-forest .form-label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.theme-forest .form-input,
+.theme-forest .form-select,
+.theme-forest .form-textarea {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--border);
+  color: var(--text);
+}
+
+.theme-forest .form-input:focus,
+.theme-forest .form-select:focus,
+.theme-forest .form-textarea:focus {
+  border-color: var(--border-focus);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 4px var(--shadow), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.theme-forest .form-submit {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: white;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 4px 14px 0 rgba(5, 150, 105, 0.39);
+}
+
+.theme-forest .form-submit:hover {
+  background: linear-gradient(135deg, var(--primary-hover), #065f46);
+  box-shadow: 0 8px 25px rgba(5, 150, 105, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 16px;
+  }
+  
+  .form-card {
+    padding: 24px;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+  }
+}
