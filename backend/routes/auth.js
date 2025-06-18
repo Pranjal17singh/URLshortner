@@ -71,11 +71,13 @@ router.post('/login', validateLogin, async (req, res) => {
 });
 
 // Google OAuth routes
-router.get('/google', 
+router.get('/google', (req, res, next) => {
   passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
-  })
-);
+    scope: ['profile', 'email'],
+    accessType: 'offline',
+    prompt: 'select_account'  // Force account selection every time
+  })(req, res, next);
+});
 
 router.get('/google/callback', 
   passport.authenticate('google', { session: false }),
