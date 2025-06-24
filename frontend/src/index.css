@@ -1,9 +1,9 @@
+/* Import theme styles for form preview */
+@import url('../../shared/themes.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import theme styles for form preview */
-@import url('../../../shared/themes.css');
 
 @layer base {
   html {

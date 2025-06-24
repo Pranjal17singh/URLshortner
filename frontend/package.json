@@ -2,6 +2,7 @@
   "name": "url-shortener-frontend",
   "version": "1.0.0",
   "description": "Lead Generation URL Shortener Frontend",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
