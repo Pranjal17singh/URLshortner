@@ -47,9 +47,7 @@ const Dashboard = () => {
   }
 
   const copyToClipboard = (url) => {
-    // Use backend URL for short links (not frontend URL)
-    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
-    const shortUrl = `${baseUrl}/${url.customAlias || url.shortCode}`
+    const shortUrl = `${window.location.origin}/${url.customAlias || url.shortCode}`
     copy(shortUrl)
     toast.success('Short URL copied to clipboard!')
   }

@@ -211,6 +211,7 @@ router.get('/dashboard', authenticate, async (req, res) => {
         }
       }),
       
+      // Get top URLs with counts using subquery approach
       Analytics.findAll({
         attributes: [
           'urlId',
@@ -224,13 +225,21 @@ router.get('/dashboard', authenticate, async (req, res) => {
         group: ['urlId'],
         order: [[require('sequelize').fn('COUNT', require('sequelize').col('Analytics.id')), 'DESC']],
         limit: 10,
-        include: [
-          {
-            model: URL,
-            as: 'url',
-            attributes: ['originalUrl', 'shortCode', 'customAlias', 'title']
-          }
-        ]
+        raw: true
+      }).then(async (topUrlsData) => {
+        // Get URL details separately to avoid GROUP BY issues
+        const topUrlIds = topUrlsData.map(item => item.urlId);
+        const urlDetails = await URL.findAll({
+          where: { id: { [Op.in]: topUrlIds } },
+          attributes: ['id', 'originalUrl', 'shortCode', 'customAlias', 'title'],
+          raw: true
+        });
+        
+        // Combine the data
+        return topUrlsData.map(analytics => {
+          const url = urlDetails.find(u => u.id === analytics.urlId);
+          return { ...analytics, url };
+        });
       }),
       
       Analytics.findAll({

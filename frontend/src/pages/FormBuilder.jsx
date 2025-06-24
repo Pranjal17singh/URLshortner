@@ -295,7 +295,7 @@ const FormBuilder = () => {
     setFormFields(form.fields)
   }
 
-  const useTemplate = (template) => {
+  const applyTemplate = (template) => {
     setFormName(template.name)
     setFormFields(template.fields)
     setCurrentForm(null)
@@ -694,7 +694,7 @@ const FormBuilder = () => {
             </div>
           `
           
-        case 'select':
+        case 'select': {
           const options = field.options?.map(option => 
             `<option value="${option.value}">${option.label}</option>`
           ).join('') || ''
@@ -714,6 +714,7 @@ const FormBuilder = () => {
               </select>
             </div>
           `
+        }
           
         case 'checkbox':
           return `
@@ -826,7 +827,7 @@ const FormBuilder = () => {
                 {templates.map((template) => (
                   <button
                     key={template.id}
-                    onClick={() => useTemplate(template)}
+                    onClick={() => applyTemplate(template)}
                     className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <div className="text-sm font-medium text-gray-700">

@@ -131,8 +131,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-                  window.location.href = `${backendUrl}/api/auth/google`;
+                  window.location.href = '/api/auth/google';
                 }}
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200"
               >

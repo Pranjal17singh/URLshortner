@@ -53,8 +53,7 @@ const URLAnalytics = () => {
 
   const copyToClipboard = () => {
     if (!urlData) return
-    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
-    const shortUrl = `${baseUrl}/${urlData.customAlias || urlData.shortCode}`
+    const shortUrl = `${window.location.origin}/${urlData.customAlias || urlData.shortCode}`
     copy(shortUrl)
     toast.success('Short URL copied to clipboard!')
   }
@@ -186,7 +185,7 @@ const URLAnalytics = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="card text-center py-12">
           <h3 className="text-lg font-medium text-gray-900 mb-2">URL not found</h3>
-          <p className="text-gray-600 mb-4">The URL you're looking for doesn't exist or you don't have access to it.</p>
+          <p className="text-gray-600 mb-4">The URL you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
           <Link to="/dashboard" className="btn-primary">
             Back to Dashboard
           </Link>
