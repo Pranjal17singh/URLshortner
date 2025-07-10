@@ -1,0 +1,5 @@
+# Only include app.js as a function
+api/**
+!api/app.js
+!api/package.json
+!api/node_modules/

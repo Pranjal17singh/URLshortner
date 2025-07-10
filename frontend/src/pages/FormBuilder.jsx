@@ -17,7 +17,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { formAPI } from '../utils/api'
+import { supabase } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import { 
   Plus, 
@@ -161,6 +162,7 @@ const SortableItem = ({ field, updateField, removeField }) => {
 }
 
 const FormBuilder = () => {
+  const { user } = useAuth()
   const [forms, setForms] = useState([])
   const [templates, setTemplates] = useState([])
   const [currentForm, setCurrentForm] = useState(null)
@@ -188,19 +190,68 @@ const FormBuilder = () => {
   ]
 
   useEffect(() => {
-    loadData()
-  }, [])
+    if (user?.id) {
+      loadData()
+    }
+  }, [user])
 
   const loadData = async () => {
     try {
-      const [formsResponse, templatesResponse] = await Promise.all([
-        formAPI.getForms(),
-        formAPI.getTemplates()
-      ])
-      setForms(formsResponse.data.forms)
-      setTemplates(templatesResponse.data.templates)
+      // Load forms from Supabase
+      const { data: formsData, error: formsError } = await supabase
+        .from('forms')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (formsError) {
+        console.error('Forms fetch error:', formsError)
+        setForms([])
+      } else {
+        setForms(formsData || [])
+      }
+
+      // Set static templates for now
+      const staticTemplates = [
+        {
+          id: 1,
+          name: 'Contact Form',
+          description: 'Basic contact information collection',
+          fields: [
+            { id: 'name', type: 'text', label: 'Full Name', required: true },
+            { id: 'email', type: 'email', label: 'Email Address', required: true },
+            { id: 'phone', type: 'text', label: 'Phone Number', required: false },
+            { id: 'message', type: 'textarea', label: 'Message', required: false }
+          ]
+        },
+        {
+          id: 2,
+          name: 'Lead Generation',
+          description: 'Comprehensive lead capture form',
+          fields: [
+            { id: 'firstName', type: 'text', label: 'First Name', required: true },
+            { id: 'lastName', type: 'text', label: 'Last Name', required: true },
+            { id: 'email', type: 'email', label: 'Business Email', required: true },
+            { id: 'company', type: 'text', label: 'Company Name', required: true },
+            { id: 'industry', type: 'select', label: 'Industry', required: true, 
+              options: [
+                { value: 'technology', label: 'Technology' },
+                { value: 'healthcare', label: 'Healthcare' },
+                { value: 'finance', label: 'Finance' },
+                { value: 'education', label: 'Education' },
+                { value: 'other', label: 'Other' }
+              ]
+            }
+          ]
+        }
+      ]
+      setTemplates(staticTemplates)
+
     } catch (error) {
+      console.error('Load data error:', error)
       toast.error('Failed to load forms')
+      setForms([])
+      setTemplates([])
     }
   }
 
@@ -266,10 +317,30 @@ const FormBuilder = () => {
       }
 
       if (currentForm) {
-        await formAPI.updateForm(currentForm.id, formData)
+        // Update existing form
+        const { error } = await supabase
+          .from('forms')
+          .update({
+            name: formData.name,
+            fields: formData.fields
+          })
+          .eq('id', currentForm.id)
+          .eq('user_id', user.id)
+
+        if (error) throw error
         toast.success('Form updated successfully')
       } else {
-        await formAPI.createForm(formData)
+        // Create new form
+        const { error } = await supabase
+          .from('forms')
+          .insert([{
+            user_id: user.id,
+            name: formData.name,
+            fields: formData.fields,
+            is_active: true
+          }])
+
+        if (error) throw error
         toast.success('Form created successfully')
       }
 
@@ -305,13 +376,21 @@ const FormBuilder = () => {
     if (!confirm('Are you sure you want to delete this form?')) return
 
     try {
-      await formAPI.deleteForm(formId)
+      const { error } = await supabase
+        .from('forms')
+        .delete()
+        .eq('id', formId)
+        .eq('user_id', user.id)
+
+      if (error) throw error
+
       toast.success('Form deleted successfully')
       loadData()
       if (currentForm && currentForm.id === formId) {
         resetForm()
       }
     } catch (error) {
+      console.error('Delete form error:', error)
       toast.error('Failed to delete form')
     }
   }

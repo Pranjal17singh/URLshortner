@@ -1,33 +1,15 @@
-# 🔗 Lead Generation URL Shortener
+# URL Shortener - Lead Generation Platform
 
-A modern, full-stack URL shortener application with advanced lead generation capabilities, form builder, analytics, and Google OAuth authentication.
+A production-ready URL shortener with lead generation forms and analytics.
 
-## ✨ Features
+## 🚀 Features
 
-### 🚀 Core Features
-- **URL Shortening**: Create short, memorable links with optional custom aliases
+- **URL Shortening**: Create short, memorable links with custom codes
 - **Lead Generation**: Capture leads with custom forms before redirecting
-- **Form Builder**: Drag & drop form builder with live preview
-- **Analytics Dashboard**: Comprehensive analytics with user responses and CSV export
-- **5 Beautiful Themes**: Professional form styling (Ocean Breeze, Midnight Galaxy, Sunrise Bloom, Electric Dreams, Forest Mystique)
-
-### 🔐 Authentication
-- **Traditional Auth**: Email/password registration and login
-- **Google OAuth**: One-click sign-in with Google
-- **JWT Tokens**: Secure session management
-
-### 📊 Analytics & Data
-- **Click Tracking**: Real-time click counting and analytics
-- **Form Responses**: Capture and analyze user submissions
-- **CSV Export**: Download submission data for external analysis
-- **User Dashboard**: Comprehensive analytics and management interface
-
-### 🎨 Form Builder
-- **Drag & Drop**: Modern drag-and-drop interface using @dnd-kit
-- **Live Preview**: Real-time form preview with theme switching
-- **Field Types**: Text, Email, Textarea, Dropdown, Checkbox
-- **Theme System**: 5 professional themes with live preview
-- **Responsive Design**: Mobile-friendly forms and interface
+- **Form Builder**: Dynamic form creation with templates
+- **Analytics**: Real-time click tracking and conversion metrics
+- **Authentication**: Secure Supabase Auth integration
+- **Production Ready**: Clean architecture with security & performance
 
 ## 🛠️ Technology Stack
 
@@ -38,152 +20,220 @@ A modern, full-stack URL shortener application with advanced lead generation cap
 - **React Router** - Client-side routing
 - **Axios** - HTTP client for API calls
 - **React Hot Toast** - Beautiful notifications
-- **@dnd-kit** - Modern drag and drop for React
-- **Lucide React** - Beautiful icons
+- **Supabase Auth** - Authentication
 
 ### Backend
 - **Node.js** - JavaScript runtime
 - **Express.js** - Web framework
-- **Sequelize** - Modern ORM with migrations
-- **SQLite** (development) / **PostgreSQL** (production via Supabase)
-- **Passport.js** - Authentication middleware
-- **JWT** - JSON Web Tokens for auth
-- **BCrypt** - Password hashing
+- **Supabase** - Database and authentication
+- **PostgreSQL** - Production database
+- **Helmet** - Security middleware
+- **Morgan** - Request logging
 - **Nanoid** - URL-safe unique ID generator
 
-### Database & Deployment
-- **SQLite** - Local development database
-- **Supabase PostgreSQL** - Production database
-- **Vercel** - Deployment platform (both frontend and backend)
-- **Google OAuth** - Social authentication
+### Security & Performance
+- **Input Validation** - Express-validator
+- **Rate Limiting** - DDoS protection
+- **Error Handling** - Structured error responses
+- **CORS** - Cross-origin resource sharing
+- **Sanitization** - XSS protection
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 16+ 
-- npm or yarn
-- Git
+- Node.js 18+
+- Supabase account
+- PostgreSQL (via Supabase)
 
 ### 1. Clone the Repository
-\`\`\`bash
-git clone https://github.com/Pranjal17singh/URLshortner.git
-cd URLshortner
-\`\`\`
+```bash
+git clone <your-repo>
+cd URlShortner
+```
 
 ### 2. Install Dependencies
-\`\`\`bash
-# Install backend dependencies
-cd backend
+```bash
+# Install API dependencies
+cd api
 npm install
 
 # Install frontend dependencies
 cd ../frontend
 npm install
-\`\`\`
+```
 
-### 3. Environment Setup
+### 3. Database Setup
+- Create a Supabase project at [supabase.com](https://supabase.com)
+- Run the SQL in `PRODUCTION_SCHEMA.sql` in your Supabase SQL Editor
+- Copy your Supabase credentials
 
-#### Backend Environment (\`backend/.env\`)
-\`\`\`env
+### 4. Environment Setup
+
+#### API Environment (`api/.env`)
+```env
 NODE_ENV=development
-PORT=5000
-JWT_SECRET=your-super-secure-jwt-secret-key-here
+PORT=3001
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 FRONTEND_URL=http://localhost:3000
-BASE_URL=http://localhost:5000
-SESSION_SECRET=your-session-secret-key-here
+JWT_SECRET=your-jwt-secret
+```
 
-# Google OAuth (optional for development)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
-\`\`\`
+#### Frontend Environment (`frontend/.env`)
+```env
+VITE_API_URL=http://localhost:3001/api
+```
 
-#### Frontend Environment (\`frontend/.env\`)
-\`\`\`env
-VITE_API_URL=http://localhost:5000/api
-\`\`\`
-
-### 4. Run the Application
-\`\`\`bash
-# Start backend (from backend directory)
-npm start
+### 5. Run the Application
+```bash
+# Start API (from api directory)
+npm run dev
 
 # Start frontend (from frontend directory, in another terminal)
 npm run dev
-\`\`\`
+```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application!
 
-## 🔧 Google OAuth Setup (Optional)
+## 🔧 API Endpoints
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project or select existing one
-3. Enable Google+ API or Google Identity API
-4. Create OAuth 2.0 credentials:
-   - **Authorized JavaScript origins**: \`http://localhost:5000\`, \`http://localhost:3000\`
-   - **Authorized redirect URIs**: \`http://localhost:5000/api/auth/google/callback\`
-5. Copy Client ID and Client Secret to your \`.env\` file
+### Health Check
+- `GET /health` - Server health status
+
+### Authentication
+- `GET /api/auth/me` - Get current user
+- `PUT /api/auth/profile` - Update user profile
+
+### URL Management
+- `POST /api/urls` - Create short URL
+- `GET /api/urls` - List user URLs
+- `GET /api/urls/:id` - Get specific URL
+- `PUT /api/urls/:id` - Update URL
+- `DELETE /api/urls/:id` - Delete URL
+
+### Forms
+- `GET /api/forms` - List user forms
+- `POST /api/forms` - Create form
+- `GET /api/forms/templates` - Get form templates
+
+### Analytics
+- `GET /api/analytics/dashboard` - Dashboard stats
+- `GET /api/analytics/urls/:id` - URL analytics
+
+### URL Redirection
+- `GET /:shortCode` - Redirect or show form
+- `POST /submit/:shortCode` - Submit form data
 
 ## 📁 Project Structure
 
-\`\`\`
-URLshortner/
-├── backend/                 # Node.js/Express backend
-│   ├── config/             # Database and passport configuration
-│   ├── middleware/         # Authentication and validation middleware
-│   ├── models/            # Sequelize database models
-│   ├── routes/            # API route handlers
-│   ├── shared/            # Shared resources (themes, etc.)
-│   ├── .env.example       # Environment variables template
-│   ├── package.json       # Backend dependencies
-│   ├── server.js          # Main server file
-│   └── vercel.json        # Vercel deployment config
-├── frontend/               # React frontend
-│   ├── public/            # Static assets
+```
+URlShortner/
+├── api/                    # Backend API
+│   ├── app.js             # Main application
+│   ├── routes/            # API routes
+│   │   └── index.js       # All API endpoints
+│   ├── middleware/        # Security & validation
+│   │   ├── auth.js        # Authentication middleware
+│   │   ├── errorHandler.js # Error handling
+│   │   ├── security.js    # Security middleware
+│   │   └── validation.js  # Input validation
+│   ├── config/            # Configuration
+│   │   ├── env.js         # Environment config
+│   │   └── supabase.js    # Database config
+│   ├── utils/             # Utilities
+│   │   └── logger.js      # Logging utility
+│   ├── .env.example       # Environment template
+│   └── package.json       # Dependencies
+├── frontend/              # React frontend
 │   ├── src/
-│   │   ├── components/    # Reusable React components
-│   │   ├── contexts/      # React context providers
+│   │   ├── components/    # React components
+│   │   ├── contexts/      # React contexts
 │   │   ├── pages/         # Page components
-│   │   ├── utils/         # Utility functions and API client
-│   │   ├── App.jsx        # Main App component
-│   │   └── main.jsx       # React entry point
-│   ├── .env.example       # Frontend environment template
+│   │   ├── services/      # API services
+│   │   └── utils/         # Utilities
 │   ├── package.json       # Frontend dependencies
 │   └── vite.config.js     # Vite configuration
-├── shared/                 # Shared resources between frontend and backend
-├── DEPLOYMENT.md          # Detailed deployment guide
-├── README.md              # This file
-└── .gitignore            # Git ignore rules
-\`\`\`
+├── PRODUCTION_SCHEMA.sql  # Database schema
+└── README.md              # This file
+```
 
 ## 🚀 Deployment
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions to Vercel with Supabase.
+### Vercel (Recommended)
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
 
-### Quick Deployment Steps:
-1. **Supabase**: Create project and get database URL
-2. **Google OAuth**: Set up production OAuth credentials  
-3. **Vercel Backend**: Deploy backend with environment variables
-4. **Vercel Frontend**: Deploy frontend with API URL
-5. **Test**: Verify all functionality works in production
+### Manual Deployment
+```bash
+# Build frontend
+cd frontend
+npm run build
+
+# Start production server
+cd ../api
+npm start
+```
+
+### Environment Variables for Production
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_ANON_KEY` - Your Supabase anon key
+- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
+- `FRONTEND_URL` - Your frontend URL
+- `JWT_SECRET` - Strong JWT secret
+- `NODE_ENV=production`
+
+## 🔒 Security Features
+
+- Input validation and sanitization
+- Rate limiting
+- CSRF protection
+- SQL injection prevention
+- XSS protection
+- Secure headers (Helmet.js)
+- Row Level Security (RLS)
+
+## 📊 Database Schema
+
+The application uses these tables:
+- `profiles` - User profiles
+- `urls` - Shortened URLs
+- `forms` - Lead generation forms
+- `form_submissions` - Form submissions
+- `analytics` - Click and event tracking
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**
+   - Check Supabase credentials in `.env`
+   - Verify database schema is created
+
+2. **Port Already in Use**
+   ```bash
+   sudo lsof -ti:3001 | xargs kill -9
+   ```
+
+3. **CORS Issues**
+   - Update `FRONTEND_URL` in environment variables
+
+### Logs
+- Development: Console output
+- Production: `logs/app.log` and `logs/error.log`
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (\`git checkout -b feature/AmazingFeature\`)
-3. Commit your changes (\`git commit -m 'Add some AmazingFeature'\`)
-4. Push to the branch (\`git push origin feature/AmazingFeature\`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with modern web technologies
-- Inspired by the need for better lead generation tools
-- Thanks to the open-source community for amazing libraries
 
 ## 📞 Support
 

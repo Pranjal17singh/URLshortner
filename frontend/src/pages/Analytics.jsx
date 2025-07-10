@@ -30,13 +30,30 @@ const Analytics = () => {
     try {
       setLoading(true)
       const urlsResponse = await urlAPI.getUrls()
-      setUrls(urlsResponse.data.urls)
+      setUrls(urlsResponse.data.urls || [])
       
       // Load overall analytics
-      const overallResponse = await analyticsAPI.getOverallAnalytics(timeRange)
-      setOverallStats(overallResponse.data)
+      try {
+        const overallResponse = await analyticsAPI.getOverallAnalytics(timeRange)
+        setOverallStats(overallResponse.data)
+      } catch (analyticsError) {
+        console.error('Analytics API error:', analyticsError)
+        // Set default stats if analytics endpoint fails
+        setOverallStats({
+          totalClicks: 0,
+          totalLeads: 0,
+          activeUrls: urlsResponse.data.urls?.length || 0
+        })
+      }
     } catch (error) {
+      console.error('Load data error:', error)
       toast.error('Failed to load analytics')
+      setUrls([])
+      setOverallStats({
+        totalClicks: 0,
+        totalLeads: 0,
+        activeUrls: 0
+      })
     } finally {
       setLoading(false)
     }
@@ -159,10 +176,10 @@ const Analytics = () => {
           <div className="card">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Your URLs</h3>
-              <span className="text-sm text-gray-500">{urls.length} total</span>
+              <span className="text-sm text-gray-500">{urls?.length || 0} total</span>
             </div>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {urls.map((url) => (
+              {urls?.map((url) => (
                 <div
                   key={url.id}
                   onClick={() => loadUrlAnalytics(url.id)}

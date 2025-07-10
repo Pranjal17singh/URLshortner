@@ -1,28 +1,57 @@
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { supabase } = require('../config/supabase');
+const { AppError } = require('./errorHandler');
+const logger = require('../utils/logger');
 
-const authenticate = async (req, res, next) => {
+// Middleware to verify Supabase JWT token
+const verifyToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      throw new AppError('No token provided', 401);
     }
 
-    const token = authHeader.substring(7);
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    const user = await User.findByPk(decoded.userId);
-    if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid token' });
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      throw new AppError('Invalid token', 401);
     }
 
     req.user = user;
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    res.status(401).json({ error: 'Invalid token' });
+    logger.error('Token verification error:', error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ 
+        success: false,
+        error: error.message 
+      });
+    }
+    res.status(401).json({ 
+      success: false,
+      error: 'Token verification failed' 
+    });
+  }
+};
+
+// Legacy authenticate function for backwards compatibility
+const authenticate = verifyToken;
+
+// Optional authentication middleware (doesn't fail if no token)
+const optionalAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return next();
+    }
+
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (!error && user) {
+      req.user = user;
+    }
+    next();
+  } catch (error) {
+    logger.error('Optional auth error:', error);
+    next(); // Continue without authentication
   }
 };
 
@@ -34,4 +63,9 @@ const generateToken = (userId) => {
   );
 };
 
-module.exports = { authenticate, generateToken };
+module.exports = {
+  verifyToken,
+  authenticate, // Legacy compatibility
+  optionalAuth,
+  generateToken
+};
