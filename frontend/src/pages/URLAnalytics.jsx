@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { urlAPI } from '../utils/api'
+import { supabase } from '../services/api'
 import toast from 'react-hot-toast'
 import {
   ArrowLeft,
@@ -38,13 +38,78 @@ const URLAnalytics = () => {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [urlResponse, analyticsResponse] = await Promise.all([
-        urlAPI.getUrl(id),
-        urlAPI.getUrlStats(id)
-      ])
-      setUrlData(urlResponse.data.url)
-      setAnalytics(analyticsResponse.data.stats)
+      
+      // Get URL data from Supabase
+      const { data: urlData, error: urlError } = await supabase
+        .from('urls')
+        .select(`
+          *,
+          forms (
+            id,
+            name,
+            fields,
+            template_type
+          )
+        `)
+        .eq('id', id)
+        .single()
+      
+      if (urlError) {
+        throw new Error(urlError.message)
+      }
+      
+      // Get analytics data
+      const { data: analyticsData, error: analyticsError } = await supabase
+        .from('analytics')
+        .select('*')
+        .eq('url_id', id)
+        .order('created_at', { ascending: false })
+      
+      if (analyticsError) {
+        throw new Error(analyticsError.message)
+      }
+      
+      // Get submissions data
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('url_id', id)
+        .order('created_at', { ascending: false })
+      
+      if (submissionsError) {
+        console.error('Submissions error:', submissionsError)
+      }
+      
+      // Process analytics data
+      const processedAnalytics = {
+        totalClicks: analyticsData.filter(a => a.event_type === 'click').length,
+        totalLeads: submissionsData?.length || 0,
+        conversionRate: analyticsData.length > 0 
+          ? ((submissionsData?.length || 0) / analyticsData.filter(a => a.event_type === 'click').length * 100).toFixed(1)
+          : 0,
+        recentActivity: analyticsData.slice(0, 20).map(a => ({
+          eventType: a.event_type,
+          createdAt: a.created_at,
+          browser: 'Unknown',
+          device: 'Unknown',
+          country: 'Unknown'
+        })),
+        submissions: submissionsData?.map(s => ({
+          id: s.id,
+          data: s.submission_data,
+          createdAt: s.created_at,
+          ipAddress: s.ip_address
+        })) || [],
+        formFields: urlData.forms?.fields || []
+      }
+      
+      setUrlData({
+        ...urlData,
+        form: urlData.forms
+      })
+      setAnalytics(processedAnalytics)
     } catch (error) {
+      console.error('Load data error:', error)
       toast.error('Failed to load URL analytics')
     } finally {
       setLoading(false)
@@ -111,25 +176,28 @@ const URLAnalytics = () => {
   const exportToCsv = async () => {
     try {
       setExportLoading(true)
-      const response = await urlAPI.exportCsv(id)
       
-      // Create blob URL and trigger download
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      if (!analytics.submissions || analytics.submissions.length === 0) {
+        toast.error('No submissions to export')
+        return
+      }
+      
+      // Create CSV content
+      const headers = Object.keys(analytics.submissions[0].data).join(',')
+      const rows = analytics.submissions.map(submission => 
+        Object.values(submission.data).map(value => 
+          typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value
+        ).join(',')
+      )
+      
+      const csvContent = [headers, ...rows].join('\n')
+      
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      
-      // Get filename from response headers or create default
-      const contentDisposition = response.headers['content-disposition']
-      let filename = 'submissions.csv'
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="(.+)"/)
-        if (filenameMatch) {
-          filename = filenameMatch[1]
-        }
-      }
-      
-      link.setAttribute('download', filename)
+      link.setAttribute('download', `submissions-${id}.csv`)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -137,13 +205,8 @@ const URLAnalytics = () => {
       
       toast.success('CSV exported successfully!')
     } catch (error) {
-      if (error.response?.status === 404) {
-        toast.error('No submissions found to export')
-      } else if (error.response?.status === 400) {
-        toast.error('This URL has no form attached')
-      } else {
-        toast.error('Failed to export data')
-      }
+      console.error('Export error:', error)
+      toast.error('Failed to export data')
     } finally {
       setExportLoading(false)
     }

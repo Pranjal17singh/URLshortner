@@ -3,10 +3,8 @@ const { body, param, query, validationResult } = require('express-validator');
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array());
-    console.log('Request body:', req.body);
-    console.log('Custom alias value:', req.body.customAlias, 'Type:', typeof req.body.customAlias);
     return res.status(400).json({
+      success: false,
       error: 'Validation failed',
       details: errors.array()
     });
@@ -48,9 +46,11 @@ const validateLogin = [
 
 const validateUrlCreation = [
   body('originalUrl')
-    .isURL()
-    .withMessage('Please provide a valid URL'),
-  body('customAlias')
+    .isURL({ require_protocol: true })
+    .withMessage('Please provide a valid URL with protocol (http/https)')
+    .isLength({ max: 2048 })
+    .withMessage('URL must be less than 2048 characters'),
+  body('customCode')
     .optional()
     .trim()
     .custom((value) => {
@@ -58,12 +58,12 @@ const validateUrlCreation = [
       if (value === '' || value === null || value === undefined) {
         return true;
       }
-      // If provided, must be 3-50 characters and alphanumeric with hyphens/underscores
-      if (value.length < 3 || value.length > 50) {
-        throw new Error('Custom alias must be 3-50 characters long');
+      // If provided, must be 4-20 characters and alphanumeric with hyphens/underscores
+      if (value.length < 4 || value.length > 20) {
+        throw new Error('Custom code must be 4-20 characters long');
       }
       if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-        throw new Error('Custom alias can only contain letters, numbers, hyphens, and underscores');
+        throw new Error('Custom code can only contain letters, numbers, hyphens, and underscores');
       }
       return true;
     }),
