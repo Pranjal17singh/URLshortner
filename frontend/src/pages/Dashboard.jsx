@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { urlAPI, analyticsAPI, formAPI } from '../utils/api'
+import { supabase } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
+import CreateUrlForm from '../components/CreateUrlForm'
 import { 
   Plus, 
   Copy, 
@@ -16,6 +18,7 @@ import toast from 'react-hot-toast'
 import copy from 'copy-to-clipboard'
 
 const Dashboard = () => {
+  const { user } = useAuth()
   const [urls, setUrls] = useState([])
   const [stats, setStats] = useState({
     totalUrls: 0,
@@ -27,27 +30,83 @@ const Dashboard = () => {
   const [showCreateForm, setShowCreateForm] = useState(false)
 
   useEffect(() => {
-    loadData()
-  }, [])
+    if (user?.id) {
+      loadData()
+    }
+  }, [user])
 
   const loadData = async () => {
     try {
-      const [urlsResponse, statsResponse] = await Promise.all([
-        urlAPI.getUrls(),
-        analyticsAPI.getDashboard()
-      ])
+      console.log('Loading dashboard data for user:', user?.id)
       
-      setUrls(urlsResponse.data.urls)
-      setStats(statsResponse.data)
+      // Get URLs from Supabase
+      const { data: urlsData, error: urlsError } = await supabase
+        .from('urls')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (urlsError) {
+        console.error('URLs fetch error:', urlsError)
+        // If table doesn't exist, show empty state
+        setUrls([])
+      } else {
+        setUrls(urlsData || [])
+      }
+
+      // Calculate stats from URLs data
+      const totalUrls = urlsData?.length || 0
+      const totalClicks = urlsData?.reduce((sum, url) => sum + (url.clicks || 0), 0) || 0
+      
+      // Get form submissions count if forms table exists
+      let totalLeads = 0
+      try {
+        const { count } = await supabase
+          .from('form_submissions')
+          .select('*', { count: 'exact', head: true })
+          .in('form_id', 
+            await supabase
+              .from('forms')
+              .select('id')
+              .eq('user_id', user.id)
+              .then(({ data }) => data?.map(f => f.id) || [])
+          )
+        totalLeads = count || 0
+      } catch (error) {
+        console.log('Forms/submissions tables not yet created')
+      }
+
+      const conversionRate = totalClicks > 0 ? ((totalLeads / totalClicks) * 100).toFixed(2) : 0
+
+      setStats({
+        totalUrls,
+        totalClicks,
+        totalLeads,
+        conversionRate: parseFloat(conversionRate)
+      })
+
     } catch (error) {
+      console.error('Dashboard load error:', error)
       toast.error('Failed to load dashboard data')
+      // Set empty state on error
+      setUrls([])
+      setStats({ totalUrls: 0, totalClicks: 0, totalLeads: 0, conversionRate: 0 })
     } finally {
       setLoading(false)
     }
   }
 
+  const handleUrlCreated = (newUrl) => {
+    setUrls([newUrl, ...urls])
+    setStats(prev => ({
+      ...prev,
+      totalUrls: prev.totalUrls + 1
+    }))
+    setShowCreateForm(false)
+  }
+
   const copyToClipboard = (url) => {
-    const shortUrl = `${window.location.origin}/${url.customAlias || url.shortCode}`
+    const shortUrl = `${window.location.origin}/${url.short_code}`
     copy(shortUrl)
     toast.success('Short URL copied to clipboard!')
   }
@@ -56,10 +115,30 @@ const Dashboard = () => {
     if (!confirm('Are you sure you want to delete this URL?')) return
     
     try {
-      await urlAPI.deleteUrl(id)
+      const { error } = await supabase
+        .from('urls')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id) // Ensure user can only delete their own URLs
+
+      if (error) {
+        throw error
+      }
+
       setUrls(urls.filter(url => url.id !== id))
       toast.success('URL deleted successfully')
+      
+      // Update stats
+      const newStats = { ...stats }
+      newStats.totalUrls -= 1
+      const deletedUrl = urls.find(url => url.id === id)
+      if (deletedUrl?.clicks) {
+        newStats.totalClicks -= deletedUrl.clicks
+      }
+      setStats(newStats)
+      
     } catch (error) {
+      console.error('Delete URL error:', error)
       toast.error('Failed to delete URL')
     }
   }
@@ -172,7 +251,7 @@ const Dashboard = () => {
                     Clicks
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Leads
+                    Created
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -181,39 +260,39 @@ const Dashboard = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {urls.map((url) => (
-                  <tr key={url.id} className="hover:bg-gray-50">
+                  <tr key={url.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="max-w-xs">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {url.title || url.originalUrl}
-                        </p>
-                        <p className="text-sm text-gray-500 truncate">
-                          {url.originalUrl}
-                        </p>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {url.title || 'Untitled'}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                          {url.original_url}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono text-gray-900">
-                        {url.customAlias || url.shortCode}
+                      <span className="text-sm text-blue-600 font-mono">
+                        {url.short_code}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {url.clicks}
+                      {url.clicks || 0}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {url.leads}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(url.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex space-x-2">
                         <button
                           onClick={() => copyToClipboard(url)}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Copy URL"
+                          className="text-blue-400 hover:text-blue-600"
+                          title="Copy short URL"
                         >
                           <Copy className="h-4 w-4" />
                         </button>
                         <a
-                          href={url.originalUrl}
+                          href={url.original_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-gray-400 hover:text-gray-600"
@@ -247,242 +326,15 @@ const Dashboard = () => {
 
       {/* Create URL Modal */}
       {showCreateForm && (
-        <CreateURLModal
-          onClose={() => setShowCreateForm(false)}
-          onSuccess={() => {
-            setShowCreateForm(false)
-            loadData()
-          }}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="max-w-md w-full">
+            <CreateUrlForm 
+              onUrlCreated={handleUrlCreated}
+              onClose={() => setShowCreateForm(false)}
+            />
+          </div>
+        </div>
       )}
-    </div>
-  )
-}
-
-const CreateURLModal = ({ onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    originalUrl: '',
-    customAlias: '',
-    title: '',
-    description: '',
-    formId: '',
-    theme: 'modern'
-  })
-  const [forms, setForms] = useState([])
-  const [templates, setTemplates] = useState([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
-    try {
-      const [formsResponse, templatesResponse] = await Promise.all([
-        formAPI.getForms(),
-        formAPI.getTemplates()
-      ])
-      setForms(formsResponse.data.forms)
-      setTemplates(templatesResponse.data.templates)
-    } catch (error) {
-      console.error('Failed to load forms:', error)
-    }
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-
-    try {
-      let finalFormData = { ...formData }
-      
-      // Clean up empty string values for optional fields
-      if (finalFormData.customAlias === '') {
-        finalFormData.customAlias = undefined
-      }
-      if (finalFormData.title === '') {
-        finalFormData.title = undefined
-      }
-      if (finalFormData.description === '') {
-        finalFormData.description = undefined
-      }
-      if (finalFormData.formId === '') {
-        finalFormData.formId = undefined
-      }
-      
-      
-      // If a template is selected, create a custom form from template first
-      if (formData.formId && templates.find(t => t.id === formData.formId)) {
-        const template = templates.find(t => t.id === formData.formId)
-        const newForm = await formAPI.createForm({
-          name: `${template.name} - ${new Date().toLocaleDateString()}`,
-          fields: template.fields
-        })
-        finalFormData.formId = newForm.data.form.id
-      }
-      
-      await urlAPI.createUrl(finalFormData)
-      toast.success('Short URL created successfully!')
-      onSuccess()
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to create URL')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Short URL</h3>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Original URL *
-            </label>
-            <input
-              type="url"
-              required
-              className="input-field"
-              placeholder="https://example.com"
-              value={formData.originalUrl}
-              onChange={(e) => setFormData({ ...formData, originalUrl: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Custom Alias (optional)
-            </label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="my-custom-link"
-              value={formData.customAlias}
-              onChange={(e) => setFormData({ ...formData, customAlias: e.target.value })}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Leave blank to auto-generate a random short code
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title (optional)
-            </label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Link title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (optional)
-            </label>
-            <textarea
-              className="input-field"
-              rows="3"
-              placeholder="Link description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Form (optional)
-            </label>
-            <select
-              className="input-field"
-              value={formData.formId}
-              onChange={(e) => setFormData({ ...formData, formId: e.target.value })}
-            >
-              <option value="">No form - Direct redirect</option>
-              
-              {templates.length > 0 && (
-                <optgroup label="📝 Quick Templates">
-                  {templates.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.name} ({template.fields.length} fields)
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              
-              {forms.length > 0 && (
-                <optgroup label="🔧 Your Custom Forms">
-                  {forms.map((form) => (
-                    <option key={form.id} value={form.id}>
-                      {form.name} ({form.fields.length} fields)
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
-            
-            {forms.length === 0 && templates.length === 0 && (
-              <p className="text-sm text-gray-500 mt-1">
-                No forms available. <Link to="/forms" className="text-blue-600 hover:text-blue-800">Create your first form →</Link>
-              </p>
-            )}
-            
-            {formData.formId && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm">
-                {templates.find(t => t.id === formData.formId) ? (
-                  <span className="text-blue-700">
-                    📝 Template will be converted to your custom form
-                  </span>
-                ) : (
-                  <span className="text-blue-700">
-                    🔧 Using your custom form
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {formData.formId && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Theme
-              </label>
-              <select
-                className="input-field"
-                value={formData.theme}
-                onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-              >
-                <option value="modern">Ocean Breeze</option>
-                <option value="dark">Midnight Galaxy</option>
-                <option value="gradient">Sunrise Bloom</option>
-                <option value="neon">Electric Dreams</option>
-                <option value="forest">Forest Mystique</option>
-              </select>
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary"
-            >
-              {loading ? 'Creating...' : 'Create URL'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   )
 }
